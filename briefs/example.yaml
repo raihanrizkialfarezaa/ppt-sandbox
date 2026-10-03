@@ -1,0 +1,91 @@
+title: "Contoh Deck — Kopi Nusantara"
+theme: corporate-blue
+theme_override:
+  colors:
+    accent: "#2E9BFF"
+    accent2: "#FFB020"
+  footer:
+    show_number: true
+    text: "Kopi Nusantara • Confidential"
+slides:
+  - type: cover
+    kicker: "Pitch Deck"
+    title: "Kopi Nusantara"
+    subtitle: "Dari petani lokal ke cangkir dunia — seed round 2026"
+    author: "Tim Founder"
+    date: "Oktober 2026"
+    cover_stat: "12K+"
+    cover_stat_label: "pelanggan / bulan"
+
+  - type: agenda
+    kicker: "Agenda"
+    title: "Apa yang akan dibahas"
+    items:
+      - {title: "Masalah", desc: "Rantai pasok kopi yang panjang"}
+      - {title: "Solusi", desc: "Platform direct-trade + roastery"}
+      - {title: "Traksi", desc: "Angka pertumbuhan 6 bulan"}
+      - {title: "Ask", desc: "Kebutuhan dana & alokasi"}
+
+  - type: section
+    kicker: "Bagian 01"
+    title: "Masalah"
+    subtitle: "Petani dibayar murah, konsumen membayar mahal."
+
+  - type: bullets
+    kicker: "Masalah"
+    title: "Tiga friksi utama"
+    items:
+      - {title: "Margin menipis di hulu", desc: "Petani hanya terima 20–30% harga akhir."}
+      - {title: "Kualitas tidak konsisten", desc: "Tanpa standarisasi pasca-panen."}
+      - {title: "Distribusi lambat", desc: "4–5 perantara sebelum sampai roastery."}
+
+  - type: stats
+    kicker: "Traksi"
+    title: "Dampak dalam angka"
+    subtitle: "6 bulan terakhir, terukur dan editable."
+    items:
+      - {value: "12K+", label: "pelanggan / bulan", desc: "naik 3x YoY"}
+      - {value: "86", label: "petani mitra", desc: "3 kabupaten"}
+      - {value: "4.9", label: "rating produk", desc: "2.300 ulasan"}
+      - {value: "38%", label: "repeat order", desc: "cohort 90 hari"}
+
+  - type: chart
+    kicker: "Pertumbuhan"
+    title: "Pendapatan bulanan (native chart — editable)"
+    subtitle: "Klik chart di PowerPoint untuk ubah datanya."
+    chart:
+      kind: column
+      categories: ["Mei", "Jun", "Jul", "Agu", "Sep", "Okt"]
+      series:
+        - {name: "Online", values: [120, 180, 240, 310, 420, 510]}
+        - {name: "Offline", values: [80, 95, 110, 140, 170, 200]}
+    insight: "Online tumbuh 4x dalam 6 bulan dan menyumbang 70% revenue."
+    source: "Sumber: internal finance, Okt 2026"
+
+  - type: table
+    kicker: "Perbandingan"
+    title: "Kenapa kami menang"
+    headers: ["Aspek", "Kami", "Kompetitor A"]
+    rows:
+      - ["Harga ke petani", "+35% di atas pasar", "Harga pasar"]
+      - ["Skor cupping", "86+", "80–82"]
+      - ["Lead time", "3 hari", "7–10 hari"]
+
+  - type: timeline
+    kicker: "Roadmap"
+    title: "12 bulan ke depan"
+    items:
+      - {date: "Q4 2026", title: "Seed close", desc: "Rp8M untuk roastery ke-2"}
+      - {date: "Q1 2027", title: "200 petani", desc: "SOP pasca-panen penuh"}
+      - {date: "Q2 2027", title: "Ekspor perdana", desc: "Kontrak 2 buyer SG"}
+      - {date: "Q3 2027", title: "BEP", desc: "Run-rate Rp1,2M/bln"}
+
+  - type: quote
+    quote: "Kopi terbaik mereka yang pernah kami cicipi dari Jawa Barat."
+    author: "Head Buyer, Singapore Roasters"
+
+  - type: closing
+    kicker: "Terima kasih"
+    title: "Mari seduh bersama"
+    subtitle: "kontak@kopinusantara.id • +62 812-0000-0000"
+    cta: "Hubungi Kami"

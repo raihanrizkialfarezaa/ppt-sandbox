@@ -1,0 +1,23 @@
+{
+  "name": "minimal-light",
+  "colors": {
+    "bg": "#F7F8FA",
+    "bg2": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "surface_dark": "#111827",
+    "primary": "#111827",
+    "accent": "#2563EB",
+    "accent2": "#F59E0B",
+    "text": "#111827",
+    "text_dark": "#111827",
+    "muted": "#6B7280",
+    "line": "#E5E7EB",
+    "success": "#16A34A"
+  },
+  "fonts": {"head": "Calibri", "body": "Calibri Light", "fallback": "Arial"},
+  "sizes": {"title": 40, "subtitle": 19, "h1": 30, "h2": 22, "body": 15, "small": 11, "kpi_value": 42, "kpi_label": 13},
+  "bg_style": "solid",
+  "radius_in": 0.14,
+  "footer": {"show_number": true, "text": ""},
+  "chart_style": 2
+}

@@ -1,0 +1,23 @@
+{
+  "name": "dark-premium",
+  "colors": {
+    "bg": "#0A0A0F",
+    "bg2": "#1A1A24",
+    "surface": "#16161F",
+    "surface_dark": "#16161F",
+    "primary": "#F5F5F7",
+    "accent": "#C9A96A",
+    "accent2": "#7C6FF0",
+    "text": "#F5F5F7",
+    "text_dark": "#F5F5F7",
+    "muted": "#9CA3AF",
+    "line": "#2A2A35",
+    "success": "#34D399"
+  },
+  "fonts": {"head": "Calibri", "body": "Calibri Light", "fallback": "Arial"},
+  "sizes": {"title": 42, "subtitle": 19, "h1": 30, "h2": 22, "body": 15, "small": 11, "kpi_value": 46, "kpi_label": 13},
+  "bg_style": "solid",
+  "radius_in": 0.16,
+  "footer": {"show_number": true, "text": ""},
+  "chart_style": 10
+}

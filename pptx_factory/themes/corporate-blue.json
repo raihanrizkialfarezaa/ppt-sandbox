@@ -1,0 +1,23 @@
+{
+  "name": "corporate-blue",
+  "colors": {
+    "bg": "#0B1E33",
+    "bg2": "#14325A",
+    "surface": "#FFFFFF",
+    "surface_dark": "#14283F",
+    "primary": "#0B2C4A",
+    "accent": "#2E9BFF",
+    "accent2": "#FFB020",
+    "text": "#FFFFFF",
+    "text_dark": "#1A2B3C",
+    "muted": "#8FA3B8",
+    "line": "#24405E",
+    "success": "#22C55E"
+  },
+  "fonts": {"head": "Calibri", "body": "Calibri Light", "fallback": "Arial"},
+  "sizes": {"title": 40, "subtitle": 20, "h1": 32, "h2": 24, "body": 16, "small": 12, "kpi_value": 44, "kpi_label": 14},
+  "bg_style": "solid",
+  "radius_in": 0.12,
+  "footer": {"show_number": true, "text": "Confidential"},
+  "chart_style": 2
+}
