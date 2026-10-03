@@ -1,0 +1,30 @@
+{
+  "name": "unesa-sempro",
+  "colors": {
+    "bg": "#12284C",
+    "bg2": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "surface_dark": "#2A4373",
+    "card": "#EEF2F8",
+    "primary": "#12284C",
+    "accent": "#C9A227",
+    "accent2": "#2F5D9E",
+    "gold_dark": "#8A6D0B",
+    "text": "#FFFFFF",
+    "text_dark": "#12284C",
+    "body": "#1B2640",
+    "muted": "#5B6B8A",
+    "muted_dark": "#CADCFC",
+    "line": "#D5DEEC",
+    "success": "#2E7D5B",
+    "danger": "#B3412F"
+  },
+  "fonts": {"head": "Cambria", "body": "Calibri", "fallback": "Arial"},
+  "sizes": {"title": 34, "subtitle": 18, "h1": 30, "h2": 20, "body": 16, "small": 12, "kpi_value": 40, "kpi_label": 14},
+  "bg_style": "solid",
+  "content_light": true,
+  "title_bar": false,
+  "radius_in": 0.06,
+  "footer": {"show_number": true, "number_format": "plain", "text": "S1 Teknik Informatika  |  Universitas Negeri Surabaya"},
+  "chart_style": 2
+}

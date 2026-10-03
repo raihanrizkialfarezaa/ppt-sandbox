@@ -56,7 +56,9 @@ Buka `output\preview\index.html` untuk QA cepat, buka `.pptx` di PowerPoint untu
 pptx_factory/  builder, theme_engine, layouts (12), charts_native, charts_mpl, assets, validate, preview
 tools/         ppt.py (command utama), build.py, preview.py (granular)
 ppt.cmd / ppt.ps1  wrapper sekali jalan
-briefs/        *.yaml
+briefs/        *.yaml (kontrak deck)
+template/      instructions.md, design-instructions.md (konteks bebas untuk /generate)
+references/    *.pptx rujukan + tools/ref.py untuk membaca gayanya
 assets/        fonts, icons, images, logos
 output/        *.pptx, preview/*.png + index.html, *.pdf (opsional)
 ```

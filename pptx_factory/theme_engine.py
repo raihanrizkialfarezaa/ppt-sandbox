@@ -49,8 +49,10 @@ DEFAULTS = {
         "kpi_label": 14,
     },
     "bg_style": "solid",  # solid | gradient | image-dim
+    "content_light": False,  # True = slide konten terang, slide besar tetap navy
+    "title_bar": True,  # False = tanpa bilah aksen di bawah judul
     "radius_in": 0.12,
-    "footer": {"show_number": True, "text": "Confidential"},
+    "footer": {"show_number": True, "number_format": "fraction", "text": "Confidential"},
     "chart_style": 2,
 }
 

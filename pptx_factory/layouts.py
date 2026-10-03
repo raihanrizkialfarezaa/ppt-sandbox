@@ -90,16 +90,22 @@ def accent_bar(slide, left, top, width, height, theme):
     return solid_rect(slide, left, top, width, height, theme["colors"]["accent"])
 
 
-def add_footer(slide, idx: int, total: int, theme, light_on_dark=True):
+def add_footer(slide, idx: int, total: int, theme, on_dark=None):
     cfg = theme.get("footer", {})
     if not cfg.get("show_number", True) and not cfg.get("text"):
         return
-    color = theme["colors"]["muted"]
+    if on_dark is None:
+        on_dark = not is_light_theme(theme)
+    color = MUT(theme, on_dark)
     blocks = []
     if cfg.get("text"):
         blocks.append({"text": cfg["text"], "size": theme["sizes"]["small"], "color": color, "font": theme["fonts"]["body"]})
     if cfg.get("show_number", True):
-        blocks.append({"text": f"{idx} / {total}", "size": theme["sizes"]["small"], "color": color,
+        if cfg.get("number_format", "fraction") == "plain":
+            num = f"{idx}"
+        else:
+            num = f"{idx} / {total}"
+        blocks.append({"text": num, "size": theme["sizes"]["small"], "color": color,
                        "font": theme["fonts"]["body"], "align": PP_ALIGN.RIGHT})
     if blocks:
         textbox(slide, 0.7, 7.0, 11.9, 0.35, blocks)
@@ -118,7 +124,8 @@ def title_block(slide, theme, kicker: str, title: str, subtitle: str = "", dark_
         blocks.append({"text": subtitle, "size": theme["sizes"]["body"], "color": mc,
                        "font": theme["fonts"]["body"]})
     textbox(slide, 0.7, 0.35, 11.9, 1.6, blocks)
-    accent_bar(slide, 0.7, 1.95 if subtitle else 1.7, 1.2, 0.06, theme)
+    if theme.get("title_bar", True):
+        accent_bar(slide, 0.7, 1.95 if subtitle else 1.7, 1.2, 0.06, theme)
 
 
 def is_light_theme(theme) -> bool:
@@ -129,6 +136,35 @@ def is_light_theme(theme) -> bool:
         return (0.299 * r + 0.587 * g + 0.114 * b) > 150
     except Exception:
         return False
+
+
+# Layout konten (terang bila tema content_light) vs layout gelap (mengikuti bg).
+CONTENT_TYPES = {"agenda", "bullets", "two-col", "chart", "table", "image-text"}
+
+
+def content_is_light(theme) -> bool:
+    if "content_light" in theme:
+        return bool(theme["content_light"])
+    return is_light_theme(theme)
+
+
+def slide_is_light(slide_type: str, theme) -> bool:
+    base_light = is_light_theme(theme)
+    if slide_type in CONTENT_TYPES:
+        return content_is_light(theme)
+    return base_light
+
+
+def MUT(theme, on_dark: bool) -> str:
+    """Warna teks sekunder: muted biasa di slide terang, muted_dark di navy."""
+    if on_dark:
+        return theme["colors"].get("muted_dark", theme["colors"]["muted"])
+    return theme["colors"]["muted"]
+
+
+def BODY(theme) -> str:
+    """Warna teks badan di slide terang."""
+    return theme["colors"].get("body", theme["colors"]["text_dark"])
 
 
 # ---------- 12 layouts ----------
@@ -150,12 +186,12 @@ def l_cover(slide, theme, d: dict):
         {"text": d.get("title", "Judul Presentasi"), "size": theme["sizes"]["title"],
          "bold": True, "color": theme["colors"]["text"], "font": theme["fonts"]["head"]},
         {"text": d.get("subtitle", ""), "size": theme["sizes"]["subtitle"],
-         "color": theme["colors"]["muted"], "font": theme["fonts"]["body"]},
+         "color": MUT(theme, True), "font": theme["fonts"]["body"]},
     ])
     meta = "  •  ".join([x for x in [d.get("date"), d.get("author")] if x])
     if meta:
         textbox(slide, 0.9, 5.6, 6.8, 0.6, [
-            {"text": meta, "size": theme["sizes"]["small"], "color": theme["colors"]["muted"],
+            {"text": meta, "size": theme["sizes"]["small"], "color": MUT(theme, True),
              "font": theme["fonts"]["body"]}])
     if img is None:
         # kartu aksen default bila tanpa gambar
@@ -169,8 +205,8 @@ def l_cover(slide, theme, d: dict):
 
 
 def l_agenda(slide, theme, d: dict):
-    set_bg(slide, theme, alt=is_light_theme(theme))
-    dark = is_light_theme(theme)
+    set_bg(slide, theme, alt=content_is_light(theme))
+    dark = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", "Agenda"), d.get("title", "Apa yang akan dibahas"),
                 d.get("subtitle", ""), dark_text=dark)
     items = d.get("items", [])
@@ -203,14 +239,14 @@ def l_section(slide, theme, d: dict):
          "color": theme["colors"]["accent"], "font": theme["fonts"]["head"]},
         {"text": d.get("title", "Judul Bagian"), "size": 44, "bold": True,
          "color": theme["colors"]["text"], "font": theme["fonts"]["head"]},
-        {"text": d.get("subtitle", ""), "size": 18, "color": theme["colors"]["muted"],
+        {"text": d.get("subtitle", ""), "size": 18, "color": MUT(theme, True),
          "font": theme["fonts"]["body"]},
     ])
 
 
 def l_bullets(slide, theme, d: dict):
-    set_bg(slide, theme, alt=is_light_theme(theme))
-    dark = is_light_theme(theme)
+    set_bg(slide, theme, alt=content_is_light(theme))
+    dark = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", ""), d.get("title", "Poin Utama"),
                 d.get("subtitle", ""), dark_text=dark)
     items = d.get("items", [])
@@ -224,7 +260,7 @@ def l_bullets(slide, theme, d: dict):
              "color": theme["colors"]["text_dark"] if dark else theme["colors"]["text"],
              "font": theme["fonts"]["head"]},
             {"text": it.get("desc", ""), "size": 13,
-             "color": theme["colors"]["muted"] if not dark else "#5B6B7C",
+             "color": theme["colors"]["muted"],
              "font": theme["fonts"]["body"]} if it.get("desc") else {"text": "", "size": 4,
              "color": theme["colors"]["bg"], "font": theme["fonts"]["body"]},
         ])
@@ -232,8 +268,8 @@ def l_bullets(slide, theme, d: dict):
 
 
 def l_two_col(slide, theme, d: dict):
-    set_bg(slide, theme, alt=is_light_theme(theme))
-    dark = is_light_theme(theme)
+    set_bg(slide, theme, alt=content_is_light(theme))
+    dark = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", ""), d.get("title", "Dua Kolom"),
                 d.get("subtitle", ""), dark_text=dark)
     left = d.get("left", {})
@@ -243,7 +279,7 @@ def l_two_col(slide, theme, d: dict):
             {"text": col.get("heading", ""), "size": 18, "bold": True,
              "color": theme["colors"]["accent"], "font": theme["fonts"]["head"]},
             {"text": col.get("body", ""), "size": 14,
-             "color": theme["colors"]["text_dark"] if dark else theme["colors"]["text"],
+             "color": BODY(theme) if dark else theme["colors"]["text"],
              "font": theme["fonts"]["body"]},
         ])
         for b in col.get("bullets", [])[:5]:
@@ -269,8 +305,8 @@ def l_stats(slide, theme, d: dict):
              "color": theme["colors"]["accent2"] if i == 0 else "#FFFFFF",
              "font": theme["fonts"]["head"]},
             {"text": it.get("label", ""), "size": theme["sizes"]["kpi_label"],
-             "color": theme["colors"]["muted"], "font": theme["fonts"]["body"]},
-            {"text": it.get("desc", ""), "size": 11, "color": theme["colors"]["muted"],
+             "color": MUT(theme, True), "font": theme["fonts"]["body"]},
+            {"text": it.get("desc", ""), "size": 11, "color": MUT(theme, True),
              "font": theme["fonts"]["body"]} if it.get("desc") else
             {"text": "", "size": 4, "color": theme["colors"]["surface_dark"],
              "font": theme["fonts"]["body"]},
@@ -278,8 +314,8 @@ def l_stats(slide, theme, d: dict):
 
 
 def l_chart(slide, theme, d: dict):
-    set_bg(slide, theme, alt=is_light_theme(theme))
-    dark = is_light_theme(theme)
+    set_bg(slide, theme, alt=content_is_light(theme))
+    dark = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", "Data"), d.get("title", "Grafik"),
                 d.get("subtitle", ""), dark_text=dark)
     chart = d.get("chart", {})
@@ -297,7 +333,7 @@ def l_chart(slide, theme, d: dict):
         {"text": "INSIGHT", "size": 12, "bold": True, "color": theme["colors"]["accent"],
          "font": theme["fonts"]["head"]},
         {"text": insight or "Tulis 1–2 kalimat makna data ini untuk audiens.",
-         "size": 14, "color": theme["colors"]["text_dark"] if dark else theme["colors"]["text"],
+         "size": 14, "color": BODY(theme) if dark else theme["colors"]["text"],
          "font": theme["fonts"]["body"]},
         {"text": d.get("source", ""), "size": 11,
          "color": theme["colors"]["muted"], "font": theme["fonts"]["body"]},
@@ -305,8 +341,8 @@ def l_chart(slide, theme, d: dict):
 
 
 def l_table(slide, theme, d: dict):
-    set_bg(slide, theme, alt=is_light_theme(theme))
-    dark = is_light_theme(theme)
+    set_bg(slide, theme, alt=content_is_light(theme))
+    dark = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", ""), d.get("title", "Tabel"),
                 d.get("subtitle", ""), dark_text=dark)
     headers = d.get("headers", [])
@@ -318,9 +354,13 @@ def l_table(slide, theme, d: dict):
     left, top, width, height = Inches(0.7), Inches(2.5), Inches(11.9), Inches(4.2)
     gframe = slide.shapes.add_table(n_rows, n_cols, left, top, width, height)
     tbl = gframe.table
-    # lebar kolom merata
+    # lebar kolom: pakai col_widths (inci) bila diberikan, sisanya merata
+    widths = d.get("col_widths") or []
     for c in range(n_cols):
-        tbl.columns[c].width = int(width / n_cols)
+        if c < len(widths):
+            tbl.columns[c].width = Inches(widths[c])
+        else:
+            tbl.columns[c].width = int(width / n_cols)
     # header
     for c in range(n_cols):
         cell = tbl.cell(0, c)
@@ -344,9 +384,10 @@ def l_table(slide, theme, d: dict):
             run.text = str(row[c]) if c < len(row) else ""
             run.font.size = Pt(11)
             run.font.name = theme["fonts"]["body"]
-            run.font.color.rgb = hex_to_rgb(theme["colors"]["text_dark"] if dark else "#1A2B3C")
+            run.font.color.rgb = hex_to_rgb(BODY(theme) if dark else "#1A2B3C")
             cell.fill.solid()
-            cell.fill.fore_color.rgb = hex_to_rgb("#F3F6FA" if r % 2 == 0 else "#FFFFFF")
+            zebra = theme["colors"].get("card", "#F3F6FA")
+            cell.fill.fore_color.rgb = hex_to_rgb(zebra if r % 2 == 0 else "#FFFFFF")
 
 
 def l_timeline(slide, theme, d: dict):
@@ -372,14 +413,14 @@ def l_timeline(slide, theme, d: dict):
              "font": theme["fonts"]["head"], "align": PP_ALIGN.CENTER},
         ])
         textbox(slide, x - seg / 2 + 0.1, 4.5, seg - 0.2, 1.6, [
-            {"text": it.get("desc", ""), "size": 12, "color": theme["colors"]["muted"],
+            {"text": it.get("desc", ""), "size": 12, "color": MUT(theme, True),
              "font": theme["fonts"]["body"], "align": PP_ALIGN.CENTER},
         ])
 
 
 def l_image_text(slide, theme, d: dict):
-    set_bg(slide, theme, alt=is_light_theme(theme))
-    dark = is_light_theme(theme)
+    set_bg(slide, theme, alt=content_is_light(theme))
+    dark = content_is_light(theme)
     img = d.get("image")
     # gambar kiri
     if img:
@@ -399,7 +440,7 @@ def l_image_text(slide, theme, d: dict):
          "color": theme["colors"]["text_dark"] if dark else theme["colors"]["text"],
          "font": theme["fonts"]["head"]},
         {"text": d.get("body", ""), "size": 14,
-         "color": theme["colors"]["muted"] if not dark else "#4B5563",
+         "color": theme["colors"]["muted"] if not dark else BODY(theme),
          "font": theme["fonts"]["body"]},
     ])
     bullets = d.get("bullets", [])[:4]
@@ -407,7 +448,7 @@ def l_image_text(slide, theme, d: dict):
     for b in bullets:
         textbox(slide, 7.0, y, 5.6, 0.5, [
             {"text": f"●  {b}" if isinstance(b, str) else f"●  {b.get('title','')}",
-             "size": 13, "color": theme["colors"]["text_dark"] if dark else theme["colors"]["text"],
+             "size": 13, "color": BODY(theme) if dark else theme["colors"]["text"],
              "font": theme["fonts"]["body"]}])
         y += 0.45
 
@@ -422,7 +463,7 @@ def l_quote(slide, theme, d: dict):
         {"text": d.get("quote", "Kutipan inspiratif di sini."), "size": 24,
          "color": "#FFFFFF", "font": theme["fonts"]["body"]},
         {"text": f"— {d.get('author', 'Anonim')}", "size": 14,
-         "color": theme["colors"]["muted"], "font": theme["fonts"]["body"]},
+         "color": MUT(theme, True), "font": theme["fonts"]["body"]},
     ])
 
 
@@ -435,7 +476,7 @@ def l_closing(slide, theme, d: dict):
         {"text": d.get("title", "Terima Kasih"), "size": 54, "bold": True,
          "color": theme["colors"]["text"], "font": theme["fonts"]["head"],
          "align": PP_ALIGN.CENTER},
-        {"text": d.get("subtitle", ""), "size": 18, "color": theme["colors"]["muted"],
+        {"text": d.get("subtitle", ""), "size": 18, "color": MUT(theme, True),
          "font": theme["fonts"]["body"], "align": PP_ALIGN.CENTER},
     ])
     cta = d.get("cta", "")

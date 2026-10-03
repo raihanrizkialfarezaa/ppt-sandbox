@@ -1,0 +1,248 @@
+title: "Sempro TA Raihan Rizki Alfareza"
+theme: unesa-sempro
+slides:
+  - type: cover
+    kicker: "Seminar Proposal Tugas Akhir"
+    title: "Implementasi dan Evaluasi Arsitektur Event-Driven Microservices untuk Menjaga Konsistensi Transaksi pada Apotek Multicabang"
+    subtitle: "Raihan Rizki Alfareza"
+    author: "NIM 23051204067, S1 Teknik Informatika, Fakultas Teknik"
+    date: "Pembimbing I Made Suartana, S.Kom., M.Kom. | Universitas Negeri Surabaya, 2026"
+    image: assets/logos/unesa.png
+    notes: |
+      NASKAH LISAN
+      Selamat pagi Bapak/Ibu penguji. Saya Raihan Rizki Alfareza, NIM 23051204067. Pada kesempatan ini saya mempresentasikan proposal tugas akhir tentang arsitektur event-driven microservices untuk menjaga konsistensi transaksi pada apotek multicabang. Presentasi ini berisi 14 slide isi dan 2 slide cadangan.
+
+      CATATAN PERTAHANAN
+      - Judul sudah dikunci mengikuti dokumen proposal yang disetujui. Alur presentasi mengikuti Bab I sampai Bab III.
+  - type: bullets
+    title: "Pencatatan terpisah: rekonsiliasi lambat dan selisih stok berulang"
+    subtitle: "Pertanyaan penelitian: arsitektur mana yang menjaga konsistensi transaksi?"
+    items:
+      - {title: "450 transaksi penjualan per hari di 3 cabang", desc: "Tiap cabang punya kasir mandiri, gudang memakai sistem tersendiri."}
+      - {title: "Rekonsiliasi 1 sampai 2 hari di cabang, 4 sampai 5 hari di gudang", desc: "Tidak ada sinkronisasi real-time antar lokasi."}
+      - {title: "Selisih stok fisik vs sistem hampir selalu ada tiap bulan", desc: "Ditemukan pada rekonsiliasi bulanan."}
+      - {title: "Risiko bila diintegrasikan: lost update dan oversell", desc: "Keduanya risiko bersyarat, belum terjadi di lapangan."}
+    notes: |
+      NASKAH LISAN
+      Saya memulai dari temuan lapangan di Apotek Bisma. Pencatatan terpisah membuat rekonsiliasi lambat dan selisih stok berulang. Data basi adalah masalah nyata yang sudah terjadi, sedangkan lost update dan oversell adalah risiko bila sistem diintegrasikan. Dari sini muncul pertanyaan penelitian saya.
+
+      CATATAN PERTAHANAN
+      - Sumber: wawancara dan observasi 5 Juli 2026, narasumber Ibu Atik, pemilik Apotek Bisma (Bab I 1.1).
+      - Jangan samakan masalah nyata dengan risiko bersyarat.
+  - type: bullets
+    title: "Lima masalah; perebutan stok diutamakan sebagai skenario uji"
+    items:
+      - {title: "Rekonsiliasi memakan 1 sampai 5 hari kerja", desc: "Beban kerja terbuang untuk mencocokkan catatan."}
+      - {title: "Stok sistem tidak cocok dengan stok fisik", desc: "Kepercayaan pada data menurun."}
+      - {title: "Integrasi tanpa sinkronisasi berisiko lost update dan oversell", desc: "Diuji lewat skenario perebutan stok."}
+      - {title: "Belum ada dasbor monitoring terpadu", desc: "Visibilitas lintas cabang belum tersedia."}
+      - {title: "Konsekuensi tiap arsitektur belum terbukti", desc: "Perlu dibandingkan dengan beban yang setara."}
+    notes: |
+      NASKAH LISAN
+      Dari latar belakang itu saya merumuskan lima masalah. Perebutan stok saya utamakan sebagai skenario uji karena di sanalah risiko lost update dan oversell paling mudah diamati.
+
+      CATATAN PERTAHANAN
+      - Lima masalah sesuai Bab I 1.2. Istilah "terbukti" di sini berarti status penelitian, bukan klaim hasil.
+  - type: agenda
+    title: "Studi terdahulu menjadi landasan; pengujian langsungnya masih terbuka"
+    subtitle: "Ruang penelitian: menguji dampak pemisahan layanan dan proteksi konsistensi data terhadap konsistensi transaksi pada apotek multicabang."
+    items:
+      - {title: "Arsitektur dan migrasi", desc: "Blinowski et al. (2022), Soylemez et al. (2022), Faustino et al. (2024). Monolith ringan pada beban tertentu; migrasi berbiaya. Dasar: monolith sebagai acuan."}
+      - {title: "Event dan konsistensi", desc: "Rochman dan Suartana (2026), Baiao dan Guerreiro (2026). EDA cepat memproses, penguncian memicu kemacetan stok. Dasar: Optimistic Concurrency Control."}
+      - {title: "Uji keandalan", desc: "Al-Said Ahmad dan Andras (2022), Hui et al. (2025). Gangguan sengaja dipakai menguji ketahanan; hasil butuh aturan acuan pasti. Dasar: fault injection dan test oracle."}
+      - {title: "Metodologi ukur", desc: "Rodrigues et al. (2025). Perbandingan butuh beban dan perangkat setara. Dasar: lingkungan uji setara."}
+    notes: |
+      NASKAH LISAN
+      Studi terdahulu saya kelompokkan menjadi empat. Kelompok-kelompok ini memberi landasan sekaligus menunjukkan ruang yang masih terbuka, yaitu pengujian langsung dampak pemisahan layanan pada kasus apotek multicabang.
+
+      CATATAN PERTAHANAN
+      - Rincian tiap studi ada di Tabel 2.1 dokumen proposal (Bab II 2.2).
+  - type: table
+    title: "Empat rumusan masalah dijawab oleh empat tujuan yang sejajar"
+    headers: ["RM", "Rumusan masalah", "Tujuan"]
+    col_widths: [1.2, 6.2, 4.7]
+    rows:
+      - ["RM1", "Merancang dan mengimplementasikan arsitektur pada apotek multicabang", "Rancangan arsitektur yang terimplementasi"]
+      - ["RM2", "Konsistensi data tiap arsitektur saat konkurensi transaksi", "Ukuran kondisi akhir data tiap arsitektur"]
+      - ["RM3", "Keandalan transaksi tiap arsitektur saat gangguan proses", "Catatan transaksi yang selamat tiap gangguan"]
+      - ["RM4", "Perbandingan tiga kondisi dengan beban dan pengujian setara", "Matriks perbandingan tiga kondisi"]
+    notes: |
+      NASKAH LISAN
+      Empat rumusan masalah ini dijawab oleh empat tujuan yang sejajar satu lawan satu. Performa dan kompleksitas operasional saya laporkan terpisah sebagai dimensi pendukung, bukan rumusan masalah.
+
+      CATATAN PERTAHANAN
+      - Naskah lengkap RM dan tujuan ada di Bab I 1.4 dan 1.5.
+  - type: table
+    title: "Tiga kondisi arsitektur dibandingkan dengan fungsi bisnis yang sama"
+    subtitle: "Fungsi bisnis sama; yang berbeda hanya paket proteksi konsistensi data."
+    headers: ["Aspek", "Monolith Terpusat", "Event-Driven Microservices tanpa Proteksi Konsistensi Data", "Event-Driven Microservices dengan Proteksi Konsistensi Data"]
+    rows:
+      - ["Susunan", "Satu aplikasi Laravel, empat modul", "Empat layanan NestJS", "Empat layanan NestJS"]
+      - ["Basis data", "Satu MySQL bersama", "MySQL per layanan", "MySQL per layanan"]
+      - ["Komunikasi", "Fungsi internal", "RabbitMQ", "RabbitMQ"]
+      - ["Proteksi", "Transaksi basis data tunggal", "Tanpa lima mekanisme", "Ditambah lima mekanisme"]
+    notes: |
+      NASKAH LISAN
+      Saya membandingkan tiga kondisi arsitektur dengan nama lengkapnya. Fungsi bisnis ketiganya sama, sehingga yang berbeda hanya paket proteksi. Perlu saya tegaskan bahwa perbandingan Monolith melawan EDA bukan eksperimen satu variabel karena framework dan jumlah basis data ikut berbeda.
+
+      CATATAN PERTAHANAN
+      - Setelah slide ini, boleh disingkat EDA tanpa Proteksi dan EDA dengan Proteksi.
+      - Rincian susunan ada di Bab III 3.1.
+  - type: two-col
+    title: "Konsistensi dinilai dari kondisi akhir data, bukan selisih sementara"
+    left:
+      heading: "Dua aspek konsistensi data"
+      body: "Kondisi akhir data benar setelah dipertukarkan lintas layanan. Selisih sementara antarlayanan wajar; yang dinilai adalah kondisi setelah recovery window. Ini berbeda dari Consistency ACID yang hanya berlaku satu transaksi basis data."
+    right:
+      heading: "Empat invariant bisnis"
+      body: "Available sama dengan On-Hand dikurangi Reserved. Available tidak di bawah 0. Saldo akhir sama dengan awal ditambah masuk dikurangi terjual. Status final tidak kembali aktif."
+    notes: |
+      NASKAH LISAN
+      Poin penting pada slide ini adalah definisi konsistensi yang saya pakai. Bukan tidak adanya selisih sesaat, melainkan kebenaran kondisi akhir setelah recovery window, dijaga oleh empat invariant bisnis.
+
+      CATATAN PERTAHANAN
+      - Landasan teori di Bab II 2.1.2. Siklus status transaksi ada di Gambar 3.3 dokumen proposal.
+  - type: agenda
+    title: "Satu data, satu pemilik: empat domain dengan otoritas data jelas"
+    subtitle: "Aturan otoritas: data hanya diubah layanan pemiliknya. Pelaporan hanya salinan baca. Antarlayanan lewat RabbitMQ."
+    items:
+      - {title: "Penjualan", desc: "Pemilik data order, item, dan status transaksi."}
+      - {title: "Persediaan", desc: "Pemilik data on-hand, reserved, dan mutasi stok."}
+      - {title: "Pembayaran", desc: "Pemilik data tagihan dan notifikasi bayar."}
+      - {title: "Pelaporan", desc: "Tanpa data otoritatif; hanya salinan untuk dibaca."}
+    notes: |
+      NASKAH LISAN
+      Empat layanan ini berbagi tanggung jawab fungsional dengan aturan otoritas data yang tegas. Satu data hanya boleh diubah oleh layanan pemiliknya, dan Pelaporan hanya membaca salinan.
+
+      CATATAN PERTAHANAN
+      - Tabel batas domain dan otoritas data ada di Bab III.
+  - type: agenda
+    title: "Lima mekanisme proteksi, masing-masing menargetkan satu risiko"
+    subtitle: "Outbox dan OCC fokus utama; paket dinilai keseluruhan, bukan per mekanisme."
+    items:
+      - {title: "Transactional Outbox", desc: "Mencegah F1: event pasti terbit bersama transaksi. Richardson (2018) mendokumentasikan secara sistematis pola ini."}
+      - {title: "Durable Inbox dan Idempotency", desc: "Menetralkan F2: pesan ganda tidak berefek ganda."}
+      - {title: "Optimistic Concurrency Control", desc: "Menolak F5: tulis dengan versi basi tidak menimpa."}
+      - {title: "Saga dan Kompensasi", desc: "Memulihkan F6: reservasi dibatalkan bila bayar gagal."}
+      - {title: "Broker, Retry, dan Dead-Letter Queue", desc: "Menampung F3 dan F4a: pesan tertunda diproses ulang."}
+    notes: |
+      NASKAH LISAN
+      Lima mekanisme ini membentuk satu paket proteksi. Outbox dan OCC adalah fokus utama, tetapi pengujian menilai paket secara keseluruhan.
+
+      CATATAN PERTAHANAN
+      - Mekanisme pendukung tetap wajib karena F3 dan F4a hanya tertangani oleh retry dan DLQ (Bab II 2.1.3).
+  - type: timeline
+    title: "Alur penelitian lima tahap; pilot test mendahului eksperimen utama"
+    subtitle: "Lingkungan: Laravel, NestJS, MySQL InnoDB, RabbitMQ, Docker Compose, satu host."
+    items:
+      - {date: "Tahap 1", title: "Analisis kebutuhan dan aturan bisnis", desc: "Menetapkan invariant dan otoritas data."}
+      - {date: "Tahap 2", title: "Perancangan arsitektur", desc: "Tiga kondisi dengan fungsi bisnis sama."}
+      - {date: "Tahap 3", title: "Pengembangan sistem", desc: "Implementasi empat layanan dan monolith."}
+      - {date: "Tahap 4", title: "Pengujian dan simulasi gangguan", desc: "Pilot test dulu; lulus bila oracle stabil."}
+      - {date: "Tahap 5", title: "Analisis hasil", desc: "Deskriptif: median, IQR, p95."}
+    notes: |
+      NASKAH LISAN
+      Alur penelitian saya terdiri dari lima tahap mandiri. Pilot test mendahului eksperimen utama untuk memastikan oracle dan rekonsiliasi stabil sebelum 3.330 run dijalankan.
+
+      CATATAN PERTAHANAN
+      - Alur mandiri lima tahap, bukan metode perancangan sistem informasi lain (Bab III 3.2).
+  - type: table
+    title: "Kriteria integritas non-kompensatori; performa tidak menutupinya"
+    subtitle: "Dimensi pendukung (performa, kompleksitas operasional) dilaporkan terpisah."
+    headers: ["Metrik", "Ambang", "Arti"]
+    rows:
+      - ["oversell", "0", "Unit terjual melebihi stok"]
+      - ["lost update", "0", "Tulis sah tertimpa tanpa jejak"]
+      - ["duplicate effect", "0", "Satu event berefek ganda"]
+      - ["permanent mismatch", "0", "Selisih yang tidak pulih"]
+      - ["untraceable event", "0", "Event tanpa jejak audit"]
+      - ["terminal-state coverage", "100%", "Semua transaksi berstatus final"]
+      - ["compensation success", "100%", "Semua kompensasi tuntas"]
+      - ["read-model lag", "60 dtk atau kurang", "Jeda salinan baca"]
+    notes: |
+      NASKAH LISAN
+      Kriteria ini ditetapkan sebelum eksperimen dan bersifat non-kompensatori. Artinya satu pelanggaran integritas tidak dapat ditutupi oleh angka performa yang bagus.
+
+      CATATAN PERTAHANAN
+      - Tabel kriteria lengkap ada di Bab III. Ambang ditetapkan sebelum eksperimen, bukan setelah melihat data.
+  - type: table
+    title: "Enam kode gangguan; F1 sampai F4a hanya berlaku pada kedua EDA"
+    subtitle: "Skenario: Penjualan Bersamaan, Mutasi Stok, Pembayaran Digital, QRIS Statis."
+    headers: ["Kode", "Gangguan", "Skenario", "Berlaku", "Bukti"]
+    col_widths: [0.8, 3.3, 2.9, 1.25, 3.85]
+    rows:
+      - ["F1", "Producer berhenti sebelum event terbit", "Penjualan Bersamaan", "Kedua EDA", "Jejak outbox dan log"]
+      - ["F2", "Event terkirim ganda", "Pembayaran Digital", "Kedua EDA", "Kunci idempotency"]
+      - ["F3", "Consumer berhenti sebelum ACK", "Mutasi Stok", "Kedua EDA", "Jejak retry dan DLQ"]
+      - ["F4a", "Jalur pesan ditunda", "Penjualan Bersamaan", "Kedua EDA", "Jejak retry dan DLQ"]
+      - ["F4b", "Notifikasi bayar terlambat atau tidak berurutan", "Pembayaran Digital, QRIS Statis", "Ketiga kondisi", "Status akhir dan rekonsiliasi"]
+      - ["F5", "Dua transaksi berebut stok", "Penjualan Bersamaan", "Ketiga kondisi", "Jejak versi dan kunci baris"]
+      - ["F6", "Pembayaran gagal setelah stok direservasi", "Pembayaran Digital", "Ketiga kondisi", "Jejak kompensasi"]
+    notes: |
+      NASKAH LISAN
+      Enam kode gangguan ini disuntikkan pada skenario yang berlaku. F1 sampai F4a hanya relevan pada kedua kondisi EDA karena hanya di sanalah ada broker pesan.
+
+      CATATAN PERTAHANAN
+      - Tabel gangguan lengkap ada di Bab III. Tiga kondisi hanya dibandingkan pada skenario yang berlaku untuk ketiganya.
+  - type: stats
+    title: "3.330 run: 37 kombinasi x 3 tingkat beban x 30 replikasi"
+    subtitle: "Satu run: reset data, warm-up 60 dtk, beban 60 dtk, recovery 60 dtk bila ada gangguan, rekonsiliasi."
+    items:
+      - {value: "37", label: "kombinasi (15 + 10 dengan gangguan, 12 tanpa)"}
+      - {value: "3", label: "tingkat beban (10, 50, 100 req/s)"}
+      - {value: "30", label: "replikasi per kombinasi"}
+      - {value: "3.330", label: "total run"}
+    notes: |
+      NASKAH LISAN
+      Total 3.330 run berasal dari 37 kombinasi dikali 3 tingkat beban dikali 30 replikasi. Tiap run mengikuti urutan yang sama agar hasilnya dapat dibandingkan.
+
+      CATATAN PERTAHANAN
+      - 30 replikasi adalah keputusan praktis agar median dan p95 stabil, bukan dasar klaim uji beda (Bab III 3.3.2).
+  - type: two-col
+    title: "Hasil berlaku pada parameter uji, bukan klaim arsitektur terbaik"
+    subtitle: "Mohon masukan dan arahan Bapak/Ibu Penguji."
+    left:
+      heading: "Batasan"
+      body: "Data sintetis dan beban simulasi. Satu host Docker Compose. Hasil berlaku pada parameter uji."
+    right:
+      heading: "Luaran"
+      body: "Paket arsitektur yang terimplementasi. Matriks perbandingan tiga kondisi. Naskah proposal."
+    notes: |
+      NASKAH LISAN
+      Sebagai penutup, saya tegaskan batas penelitian ini. Hasil yang saya laporkan nanti berlaku pada parameter uji, dan di luar lingkup ada aspek medis, FEFO, stock opname, resep, dan recall. Terima kasih, saya menunggu masukan Bapak/Ibu penguji.
+
+      CATATAN PERTAHANAN
+      - Batasan dan luaran sesuai Bab I 1.3 dan Bab III.
+  - type: table
+    title: "Cadangan: parameter eksperimen dan peran tiap angka"
+    headers: ["Parameter", "Nilai", "Peran"]
+    col_widths: [3.3, 3.5, 5.3]
+    rows:
+      - ["Tingkat beban", "10, 50, 100 req/s", "Mewakili kondisi sepi, normal, padat"]
+      - ["Replikasi", "30 per kombinasi", "Menstabilkan median dan p95"]
+      - ["Kombinasi", "37 (15 + 10 dengan gangguan, 12 tanpa)", "Cakupan skenario dan gangguan"]
+      - ["Warm-up", "60 dtk", "Menstabilkan sistem sebelum diukur"]
+      - ["Beban", "60 dtk", "Jendela ukur tiap run"]
+      - ["Recovery", "60 dtk bila ada gangguan", "Waktu pulih sebelum rekonsiliasi"]
+    notes: |
+      NASKAH LISAN
+      Slide cadangan ini merinci peran tiap angka eksperimen bila penguji menanyakannya.
+
+      CATATAN PERTAHANAN
+      - Acuan: Bab III 3.3.
+  - type: table
+    title: "Cadangan: definisi operasional yang dipertegas"
+    headers: ["Istilah", "Definisi", "Acuan"]
+    col_widths: [2.3, 6.6, 3.2]
+    rows:
+      - ["oversell", "Unit terjual melebihi stok tersedia", "Invariant 2"]
+      - ["lost update", "Tulis sah tertimpa tulis lain tanpa jejak", "Invariant 1"]
+      - ["duplicate effect", "Satu event menimbulkan dua efek bisnis", "Idempotency"]
+      - ["read-model lag", "Jeda salinan Pelaporan dari data pemilik, ambang 60 dtk", "Kriteria"]
+      - ["terminal-state coverage", "Proporsi transaksi berstatus final, target 100%", "Kriteria"]
+    notes: |
+      NASKAH LISAN
+      Slide cadangan kedua berisi definisi operasional istilah kunci.
+
+      CATATAN PERTAHANAN
+      - Acuan: tabel variabel Bab III.

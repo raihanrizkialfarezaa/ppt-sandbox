@@ -9,7 +9,7 @@ from pptx.util import Inches
 
 from .assets import ensure_image
 from .charts_mpl import render_mpl_chart
-from .layouts import LAYOUTS, add_footer, l_bullets
+from .layouts import CONTENT_TYPES, LAYOUTS, add_footer, is_light_theme, l_bullets
 from .theme_engine import load_theme
 from .validate import validate_brief
 
@@ -54,8 +54,15 @@ def build_from_dict(data: dict, out_pptx: str, workdir: str = ".") -> dict:
 
     for i, s in enumerate(slides, 1):
         slide = prs.slides.add_slide(blank)
-        fn = LAYOUTS.get(s.get("type", "bullets"), l_bullets)
+        t = s.get("type", "bullets")
+        fn = LAYOUTS.get(t, l_bullets)
         d = _prepare_slide_data(s, wd, theme, i)
+        if s.get("image"):
+            _src = str(s["image"])
+            if not Path(_src).is_absolute():
+                _src = str(wd / _src)
+            if not Path(_src).exists():
+                warnings.append(f"slide {i}: gambar '{s['image']}' tidak ditemukan, dipakai placeholder.")
         try:
             fn(slide, theme, d)
         except Exception as e:  # jangan gagal total gara-gara 1 slide
@@ -68,7 +75,10 @@ def build_from_dict(data: dict, out_pptx: str, workdir: str = ".") -> dict:
                 slide.notes_slide.placeholders[1].text = s["notes"]
             except Exception:
                 pass
-        add_footer(slide, i, total, theme)
+        base_light = is_light_theme(theme)
+        cl = theme.get("content_light", base_light)
+        on_dark = not (cl if t in CONTENT_TYPES else base_light)
+        add_footer(slide, i, total, theme, on_dark=on_dark)
 
     Path(out_pptx).parent.mkdir(parents=True, exist_ok=True)
     prs.save(out_pptx)
