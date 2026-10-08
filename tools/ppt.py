@@ -111,6 +111,19 @@ def produksi(brief_path: Path, nama: str, tema_override: str, no_pdf: bool) -> i
     if not no_pdf:
         pdf = try_export_pdf(str(out_pptx), str(ROOT / "output"))
         print(f"OK: PDF {Path(pdf).relative_to(ROOT)}" if pdf else "SKIP PDF: soffice tidak ditemukan.")
+
+    # QA pixel-true via PowerPoint (gerbang mutu: gagal QA = jangan serahkan)
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("qa", str(ROOT / "tools" / "qa.py"))
+        assert spec is not None and spec.loader is not None
+        qa = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(qa)
+        qa_dir = ROOT / "output" / f"qa-{nama}"
+        paths = qa.export_pngs(str(out_pptx), str(qa_dir))
+        print(f"OK: QA {len(paths)} PNG pixel-true di {qa_dir.relative_to(ROOT)} (WAJIB dibaca sebelum serah)")
+    except Exception as e:
+        print(f"SKIP QA PNG: {e}")
     print(f"Selesai. Buka {out_pptx.relative_to(ROOT)} di PowerPoint untuk edit final.")
     return 0
 

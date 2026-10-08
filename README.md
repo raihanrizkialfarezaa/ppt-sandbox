@@ -88,7 +88,7 @@ python tools\ref.py --file references\Sempro_Raihan_Rizki_Alfareza_v23.pptx
 .opencode/command/generate.md  definisi /generate
 pptx_factory/  builder, theme_engine, layouts (12), charts_native, charts_mpl, assets, validate, preview
 pptx_factory/themes/  unesa-sempro, corporate-blue, minimal-light, dark-premium
-tools/         ppt.py (command utama), build.py, preview.py (granular), ref.py (baca gaya rujukan)
+tools/         ppt.py (command utama, sudah termasuk QA PNG), build.py, preview.py (granular), ref.py (baca gaya rujukan), qa.py (export PNG pixel-true via PowerPoint)
 ppt.cmd / ppt.ps1  wrapper sekali jalan
 briefs/        example.yaml (umum), sempro-16.yaml (sempro)
 template/      instructions.md, design-instructions.md (konteks default /generate)

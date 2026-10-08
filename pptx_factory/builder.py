@@ -25,6 +25,11 @@ def _prepare_slide_data(s: dict, workdir: Path, theme: dict, idx: int) -> dict:
         try:
             d["image"] = ensure_image(src if Path(src).exists() else None, dest,
                                       label=str(d.get("title", "IMAGE"))[:20])
+            # logo cover berlatar hitam -> jadikan transparan agar rapi di panel
+            if d.get("type") == "cover" and d["image"]:
+                from .assets import key_out_black
+                keyed = str(workdir / "output" / ".cache" / f"logo-{idx}.png")
+                d["image"] = key_out_black(d["image"], keyed)
         except Exception:
             d["image"] = None
     # siapkan fallback matplotlib bila diminta: chart_backend: mpl

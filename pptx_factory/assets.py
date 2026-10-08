@@ -33,6 +33,31 @@ def ensure_image(src: str | None, dest: str, max_w: int = 1600, bg="#10294A", la
     return str(dest_p)
 
 
+def key_out_black(src: str, dest: str, thresh: int = 40) -> str:
+    """Membuat piksel nyaris-hitam menjadi transparan (untuk logo emas di atas hitam).
+
+    Mengembalikan path PNG RGBA. Bila gagal, kembalikan src apa adanya.
+    """
+    from pathlib import Path as _P
+
+    dest_p = _P(dest)
+    dest_p.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        im = Image.open(src).convert("RGBA")
+        px = im.load()
+        assert px is not None
+        w, h = im.size
+        for yy in range(h):
+            for xx in range(w):
+                r, g, b, a = px[xx, yy]
+                if max(r, g, b) < thresh:
+                    px[xx, yy] = (r, g, b, 0)
+        im.save(dest_p, "PNG")
+        return str(dest_p)
+    except Exception:
+        return src
+
+
 def fit_for_slide(src: str, dest: str, box_w: int = 1200, box_h: int = 700) -> str:
     dest_p = Path(dest)
     dest_p.parent.mkdir(parents=True, exist_ok=True)

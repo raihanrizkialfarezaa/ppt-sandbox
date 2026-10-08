@@ -16,21 +16,22 @@ slides:
       - Judul sudah dikunci mengikuti dokumen proposal yang disetujui. Alur presentasi mengikuti Bab I sampai Bab III.
   - type: bullets
     title: "Pencatatan terpisah: rekonsiliasi lambat dan selisih stok berulang"
-    subtitle: "Pertanyaan penelitian: arsitektur mana yang menjaga konsistensi transaksi?"
+    subtitle: "Pertanyaan penelitian: ketika catatan antarunit dihubungkan, apakah transaksi tetap konsisten?"
     items:
-      - {title: "450 transaksi penjualan per hari di 3 cabang", desc: "Tiap cabang punya kasir mandiri, gudang memakai sistem tersendiri."}
-      - {title: "Rekonsiliasi 1 sampai 2 hari di cabang, 4 sampai 5 hari di gudang", desc: "Tidak ada sinkronisasi real-time antar lokasi."}
-      - {title: "Selisih stok fisik vs sistem hampir selalu ada tiap bulan", desc: "Ditemukan pada rekonsiliasi bulanan."}
-      - {title: "Risiko bila diintegrasikan: lost update dan oversell", desc: "Keduanya risiko bersyarat, belum terjadi di lapangan."}
+      - {title: "450 transaksi penjualan per hari di 3 cabang", desc: "Kasir mandiri per cabang; gudang memakai Excel VBA."}
+      - {title: "Rekonsiliasi 1 sampai 2 hari di cabang, 4 sampai 5 hari di gudang", desc: "Tanpa sinkronisasi real-time antarunit."}
+      - {title: "Selalu ada selisih stok fisik vs sistem tiap bulan", desc: "Muncul pada setiap rekonsiliasi bulanan."}
+      - {title: "Risiko integrasi: dua kasir berebut stok bisa lost update", desc: "Risiko integrasi; bukan kejadian pada sistem eksisting."}
     notes: |
       NASKAH LISAN
-      Saya memulai dari temuan lapangan di Apotek Bisma. Pencatatan terpisah membuat rekonsiliasi lambat dan selisih stok berulang. Data basi adalah masalah nyata yang sudah terjadi, sedangkan lost update dan oversell adalah risiko bila sistem diintegrasikan. Dari sini muncul pertanyaan penelitian saya.
+      Saya memulai dari temuan lapangan di Apotek Bisma. Pencatatan terpisah membuat rekonsiliasi lambat. Berdasarkan konfirmasi Ibu Atik, selisih antara stok fisik dan catatan sistem selalu muncul pada setiap rekonsiliasi bulanan. Fakta ini berbeda dari risikonya: lost update dan oversell baru muncul bila catatan antarunit dihubungkan. Dari sini muncul pertanyaan penelitian saya.
 
       CATATAN PERTAHANAN
       - Sumber: wawancara dan observasi 5 Juli 2026, narasumber Ibu Atik, pemilik Apotek Bisma (Bab I 1.1).
-      - Jangan samakan masalah nyata dengan risiko bersyarat.
+      - Rumusan tanpa klaim sebab akibat: selisih selalu terjadi; kelemahan struktural hanya sebagai indikasi.
   - type: bullets
     title: "Lima masalah; perebutan stok diutamakan sebagai skenario uji"
+    numbered: true
     items:
       - {title: "Rekonsiliasi memakan 1 sampai 5 hari kerja", desc: "Beban kerja terbuang untuk mencocokkan catatan."}
       - {title: "Stok sistem tidak cocok dengan stok fisik", desc: "Kepercayaan pada data menurun."}
@@ -72,15 +73,14 @@ slides:
 
       CATATAN PERTAHANAN
       - Naskah lengkap RM dan tujuan ada di Bab I 1.4 dan 1.5.
-  - type: table
+  - type: agenda
     title: "Tiga kondisi arsitektur dibandingkan dengan fungsi bisnis yang sama"
     subtitle: "Fungsi bisnis sama; yang berbeda hanya paket proteksi konsistensi data."
-    headers: ["Aspek", "Monolith Terpusat", "Event-Driven Microservices tanpa Proteksi Konsistensi Data", "Event-Driven Microservices dengan Proteksi Konsistensi Data"]
-    rows:
-      - ["Susunan", "Satu aplikasi Laravel, empat modul", "Empat layanan NestJS", "Empat layanan NestJS"]
-      - ["Basis data", "Satu MySQL bersama", "MySQL per layanan", "MySQL per layanan"]
-      - ["Komunikasi", "Fungsi internal", "RabbitMQ", "RabbitMQ"]
-      - ["Proteksi", "Transaksi basis data tunggal", "Tanpa lima mekanisme", "Ditambah lima mekanisme"]
+    numbers: false
+    items:
+      - {title: "Monolith Terpusat", desc: "Satu aplikasi Laravel, empat modul. Satu MySQL bersama. Fungsi internal. Transaksi basis data tunggal."}
+      - {title: "Event-Driven Microservices tanpa Proteksi Konsistensi Data", desc: "Empat layanan NestJS. MySQL per layanan. RabbitMQ. Tanpa lima mekanisme."}
+      - {title: "Event-Driven Microservices dengan Proteksi Konsistensi Data", desc: "Empat layanan NestJS. MySQL per layanan. RabbitMQ. Ditambah lima mekanisme."}
     notes: |
       NASKAH LISAN
       Saya membandingkan tiga kondisi arsitektur dengan nama lengkapnya. Fungsi bisnis ketiganya sama, sehingga yang berbeda hanya paket proteksi. Perlu saya tegaskan bahwa perbandingan Monolith melawan EDA bukan eksperimen satu variabel karena framework dan jumlah basis data ikut berbeda.

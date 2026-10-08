@@ -139,7 +139,7 @@ def is_light_theme(theme) -> bool:
 
 
 # Layout konten (terang bila tema content_light) vs layout gelap (mengikuti bg).
-CONTENT_TYPES = {"agenda", "bullets", "two-col", "chart", "table", "image-text"}
+CONTENT_TYPES = {"agenda", "bullets", "facts", "two-col", "chart", "table", "image-text"}
 
 
 def content_is_light(theme) -> bool:
@@ -165,6 +165,47 @@ def MUT(theme, on_dark: bool) -> str:
 def BODY(theme) -> str:
     """Warna teks badan di slide terang."""
     return theme["colors"].get("body", theme["colors"]["text_dark"])
+
+
+def est_lines(text: str, width_in: float, size_pt: float) -> int:
+    """Perkiraan jumlah baris teks dalam lebar tertentu (anti-meluap)."""
+    import math
+    if not text:
+        return 0
+    cpl = max(width_in * 150.0 / max(size_pt, 6), 8)
+    return max(int(math.ceil(len(str(text)) / cpl)), 1)
+
+
+def card(slide, x, y, w, h, fill_hex):
+    """Kartu: rounded rect tanpa garis tepi."""
+    return solid_rect(slide, x, y, w, h, fill_hex, radius=True)
+
+
+def badge(slide, x, y, text, fill_hex, color_hex, size=12, w=0.55, h=0.42, font="Calibri"):
+    """Lencana kecil (angka/lencana kode): pill berisi teks tengah."""
+    sp = solid_rect(slide, x, y, w, h, fill_hex, radius=True)
+    tf = sp.text_frame
+    tf.word_wrap = True
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    run = p.add_run()
+    run.text = str(text)
+    run.font.size = Pt(size)
+    run.font.bold = True
+    run.font.name = font
+    try:
+        run.font.color.rgb = hex_to_rgb(color_hex)
+    except Exception:
+        pass
+    return sp
+
+
+def agenda_need_h(title: str, desc: str, col_w: float, title_size=15, desc_size=12) -> float:
+    """Tinggi kartu agenda yang dibutuhkan (inci) berdasarkan isi teks."""
+    tl = est_lines(title, col_w - 0.6, title_size)
+    dl = est_lines(desc, col_w - 0.6, desc_size)
+    return 0.62 + tl * 0.30 + dl * 0.235
 
 
 # ---------- 12 layouts ----------
@@ -206,29 +247,61 @@ def l_cover(slide, theme, d: dict):
 
 def l_agenda(slide, theme, d: dict):
     set_bg(slide, theme, alt=content_is_light(theme))
-    dark = content_is_light(theme)
+    light = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", "Agenda"), d.get("title", "Apa yang akan dibahas"),
-                d.get("subtitle", ""), dark_text=dark)
-    items = d.get("items", [])
+                d.get("subtitle", ""), dark_text=light)
+    items = d.get("items", [])[:6]
     n = max(len(items), 1)
-    col_w = (11.9 - 0.5 * (min(n, 4) - 1)) / min(n, 4)
-    for i, it in enumerate(items[:6]):
-        col = i % 4
-        row = i // 4
-        x = 0.7 + col * (col_w + 0.5)
-        y = 2.5 + row * 2.2
-        solid_rect(slide, x, y, col_w, 1.9,
-                   "#FFFFFF" if not dark else theme["colors"]["surface_dark"],
-                   theme["colors"]["line"], radius=True)
-        textbox(slide, x + 0.25, y + 0.2, col_w - 0.5, 1.5, [
-            {"text": f"{i+1:02d}", "size": 13, "bold": True, "color": theme["colors"]["accent"],
-             "font": theme["fonts"]["head"]},
-            {"text": it.get("title", f"Poin {i+1}"), "size": 15, "bold": True,
-             "color": "#1A2B3C" if not dark else "#FFFFFF", "font": theme["fonts"]["head"]},
-            {"text": it.get("desc", ""), "size": 12,
-             "color": "#5B6B7C" if not dark else theme["colors"]["muted"],
-             "font": theme["fonts"]["body"]},
-        ])
+    show_numbers = d.get("numbers", True)
+    emphasis = d.get("emphasis", 0)
+    per_row = 3 if n in (3, 6) else 4
+    gold_dark = theme["colors"].get("gold_dark", theme["colors"]["accent"])
+
+    def build(tsize, dsize):
+        rows = [items[r:r + per_row] for r in range(0, len(items), per_row)]
+        heights = []
+        for row in rows:
+            col_w = (11.9 - 0.5 * (len(row) - 1)) / len(row)
+            need = max(agenda_need_h(it.get("title", ""), it.get("desc", ""), col_w, tsize, dsize)
+                       for it in row)
+            heights.append((row, col_w, max(need, 1.7)))
+        return rows, heights
+
+    rows, heights = build(15, 12)
+    total = sum(h for _, _, h in heights) + 0.35 * (len(heights) - 1)
+    if total > 4.2:  # teks panjang: kecilkan font sekali, lalu terima
+        rows, heights = build(14, 11)
+    y = 2.55
+    for ri, (row, col_w, rh) in enumerate(heights):
+        for ci, it in enumerate(row):
+            i = ri * per_row + ci
+            x = 0.7 + ci * (col_w + 0.5)
+            is_hot = (i == emphasis)
+            if light:
+                fill = theme["colors"]["surface_dark"] if is_hot else theme["colors"].get("card", "#EEF2F8")
+                tcol = "#FFFFFF" if is_hot else theme["colors"]["text_dark"]
+                dcol = MUT(theme, True) if is_hot else theme["colors"]["muted"]
+                ncol = theme["colors"]["accent"] if is_hot else gold_dark
+            else:
+                fill = theme["colors"]["surface_dark"]
+                tcol = "#FFFFFF"
+                dcol = MUT(theme, True)
+                ncol = theme["colors"]["accent"]
+            card(slide, x, y, col_w, rh, fill)
+            ty = y + 0.18
+            if show_numbers:
+                textbox(slide, x + 0.25, ty, col_w - 0.5, 0.32, [
+                    {"text": f"{i+1:02d}", "size": 13, "bold": True, "color": ncol,
+                     "font": theme["fonts"]["head"]},
+                ])
+                ty += 0.32
+            textbox(slide, x + 0.25, ty, col_w - 0.5, rh - (ty - y) - 0.18, [
+                {"text": it.get("title", f"Poin {i+1}"), "size": 15, "bold": True,
+                 "color": tcol, "font": theme["fonts"]["head"]},
+                {"text": it.get("desc", ""), "size": 12, "color": dcol,
+                 "font": theme["fonts"]["body"]},
+            ])
+        y += rh + 0.35
 
 
 def l_section(slide, theme, d: dict):
@@ -246,25 +319,82 @@ def l_section(slide, theme, d: dict):
 
 def l_bullets(slide, theme, d: dict):
     set_bg(slide, theme, alt=content_is_light(theme))
-    dark = content_is_light(theme)
+    light = content_is_light(theme)
     title_block(slide, theme, d.get("kicker", ""), d.get("title", "Poin Utama"),
-                d.get("subtitle", ""), dark_text=dark)
-    items = d.get("items", [])
-    y = 2.5
-    for it in items[:6]:
-        if isinstance(it, str):
-            it = {"title": it}
-        solid_rect(slide, 0.7, y, 0.08, 0.9, theme["colors"]["accent"])
-        textbox(slide, 1.0, y - 0.08, 11.6, 1.1, [
-            {"text": it.get("title", ""), "size": 17, "bold": True,
-             "color": theme["colors"]["text_dark"] if dark else theme["colors"]["text"],
+                d.get("subtitle", ""), dark_text=light)
+    raw = d.get("items", [])[:6]
+    items = [it if isinstance(it, dict) else {"title": it} for it in raw]
+    numbered = d.get("numbered", False)
+    n = max(len(items), 1)
+    if n >= 5:  # padat: font lebih kecil, celah rapat
+        y0, bottom, gap, tsize, dsize = 2.5, 6.8, 0.12, 13.5, 11.0
+    else:
+        y0, bottom, gap, tsize, dsize = 2.55, 6.72, 0.16, 16, 12.5
+    card_h = (bottom - y0 - (n - 1) * gap) / n
+    card_fill = theme["colors"].get("card", "#EEF2F8") if light else theme["colors"]["surface_dark"]
+    tcol = theme["colors"]["text_dark"] if light else theme["colors"]["text"]
+    y = y0
+    for i, it in enumerate(items):
+        card(slide, 0.7, y, 11.9, card_h, card_fill)
+        # bilah aksen di dalam kartu
+        solid_rect(slide, 0.88, y + 0.14, 0.07, max(card_h - 0.28, 0.1), theme["colors"]["accent"])
+        tx = 1.25
+        if numbered:
+            badge(slide, tx, y + 0.14, f"{i+1}", theme["colors"]["primary"], "#FFFFFF", size=11)
+            tx += 0.68
+        textbox(slide, tx, y + 0.08, 0.7 + 11.9 - tx - 0.3, card_h - 0.16, [
+            {"text": it.get("title", ""), "size": tsize, "bold": True, "color": tcol,
              "font": theme["fonts"]["head"]},
-            {"text": it.get("desc", ""), "size": 13,
-             "color": theme["colors"]["muted"],
+            {"text": it.get("desc", ""), "size": dsize, "color": theme["colors"]["muted"],
              "font": theme["fonts"]["body"]} if it.get("desc") else {"text": "", "size": 4,
-             "color": theme["colors"]["bg"], "font": theme["fonts"]["body"]},
+             "color": card_fill, "font": theme["fonts"]["body"]},
         ])
-        y += 0.95 if not it.get("desc") else 1.25
+        y += card_h + gap
+
+
+def l_facts(slide, theme, d: dict):
+    """Slide fakta lapangan: empat kartu ringkas + fakta dan risiko terpisah."""
+    set_bg(slide, theme, alt=content_is_light(theme))
+    title_block(slide, theme, d.get("kicker", ""), d.get("title", "Fakta Lapangan"),
+                d.get("subtitle", ""), dark_text=True)
+    facts = d.get("facts", [])[:4]
+    n = max(len(facts), 1)
+    gap = 0.22
+    card_w = (11.9 - gap * (n - 1)) / n
+    for i, fact in enumerate(facts):
+        x = 0.7 + i * (card_w + gap)
+        fill = theme["colors"]["surface_dark"] if i == n - 1 else theme["colors"].get("card", "#EEF2F8")
+        value_color = theme["colors"]["accent"] if i == n - 1 else theme["colors"]["primary"]
+        text_color = "#FFFFFF" if i == n - 1 else BODY(theme)
+        sub_color = MUT(theme, True) if i == n - 1 else theme["colors"]["muted"]
+        card(slide, x, 2.35, card_w, 1.75, fill)
+        textbox(slide, x + 0.2, 2.55, card_w - 0.4, 1.35, [
+            {"text": fact.get("value", ""), "size": 25, "bold": True, "color": value_color,
+             "font": theme["fonts"]["head"], "align": PP_ALIGN.CENTER},
+            {"text": fact.get("label", ""), "size": 12, "color": text_color,
+             "font": theme["fonts"]["body"], "align": PP_ALIGN.CENTER},
+            {"text": fact.get("detail", ""), "size": 10.5, "color": sub_color,
+             "font": theme["fonts"]["body"], "align": PP_ALIGN.CENTER},
+        ])
+
+    # Dua area terpisah agar fakta lapangan tidak tercampur dengan risiko integrasi.
+    card(slide, 0.7, 4.4, 5.72, 1.95, theme["colors"].get("card", "#EEF2F8"))
+    textbox(slide, 1.0, 4.66, 5.12, 1.4, [
+        {"text": "KONDISI EKSISTING", "size": 12, "bold": True,
+         "color": theme["colors"].get("gold_dark", theme["colors"]["accent"]),
+         "font": theme["fonts"]["body"]},
+        {"text": d.get("existing", ""), "size": 14, "color": BODY(theme),
+         "font": theme["fonts"]["body"]},
+    ])
+    card(slide, 6.88, 4.4, 5.72, 1.95, theme["colors"]["primary"])
+    textbox(slide, 7.18, 4.66, 5.12, 1.4, [
+        {"text": "RISIKO BILA DIHUBUNGKAN", "size": 12, "bold": True,
+         "color": theme["colors"]["accent"], "font": theme["fonts"]["body"]},
+        {"text": d.get("risk", ""), "size": 14, "color": "#FFFFFF",
+         "font": theme["fonts"]["body"]},
+        {"text": d.get("risk_note", ""), "size": 10.5, "color": MUT(theme, True),
+         "font": theme["fonts"]["body"]},
+    ])
 
 
 def l_two_col(slide, theme, d: dict):
@@ -274,18 +404,19 @@ def l_two_col(slide, theme, d: dict):
                 d.get("subtitle", ""), dark_text=dark)
     left = d.get("left", {})
     right = d.get("right", {})
+    card_fill = theme["colors"].get("card", "#EEF2F8") if dark else theme["colors"]["surface_dark"]
+    hcol = theme["colors"]["text_dark"] if dark else theme["colors"]["accent"]
     for x, col in ((0.7, left), (6.9, right)):
-        textbox(slide, x, 2.5, 5.7, 4.0, [
+        card(slide, x, 2.5, 5.7, 4.0, card_fill)
+        textbox(slide, x + 0.35, 2.75, 5.0, 3.5, [
             {"text": col.get("heading", ""), "size": 18, "bold": True,
-             "color": theme["colors"]["accent"], "font": theme["fonts"]["head"]},
+             "color": hcol, "font": theme["fonts"]["head"]},
             {"text": col.get("body", ""), "size": 14,
              "color": BODY(theme) if dark else theme["colors"]["text"],
              "font": theme["fonts"]["body"]},
         ])
         for b in col.get("bullets", [])[:5]:
             pass  # bullets sudah termasuk dalam body bila perlu
-    # garis pemisah
-    solid_rect(slide, 6.55, 2.5, 0.03, 4.0, theme["colors"]["line"])
 
 
 def l_stats(slide, theme, d: dict):
@@ -297,12 +428,10 @@ def l_stats(slide, theme, d: dict):
     card_w = (11.9 - 0.6 * (n - 1)) / n
     for i, it in enumerate(items):
         x = 0.7 + i * (card_w + 0.6)
-        solid_rect(slide, x, 2.7, card_w, 3.3, theme["colors"]["surface_dark"],
-                   theme["colors"]["line"], radius=True)
-        accent_bar(slide, x, 2.7, card_w, 0.09, theme)
-        textbox(slide, x + 0.3, 3.0, card_w - 0.6, 2.7, [
+        card(slide, x, 2.9, card_w, 2.4, theme["colors"]["surface_dark"])
+        textbox(slide, x + 0.3, 3.1, card_w - 0.6, 2.0, [
             {"text": it.get("value", "—"), "size": theme["sizes"]["kpi_value"], "bold": True,
-             "color": theme["colors"]["accent2"] if i == 0 else "#FFFFFF",
+             "color": theme["colors"]["accent"] if i == 0 else "#FFFFFF",
              "font": theme["fonts"]["head"]},
             {"text": it.get("label", ""), "size": theme["sizes"]["kpi_label"],
              "color": MUT(theme, True), "font": theme["fonts"]["body"]},
@@ -351,9 +480,18 @@ def l_table(slide, theme, d: dict):
     n_cols = max(len(headers), max((len(r) for r in rows), default=0))
     if n_cols == 0:
         return
-    left, top, width, height = Inches(0.7), Inches(2.5), Inches(11.9), Inches(4.2)
-    gframe = slide.shapes.add_table(n_rows, n_cols, left, top, width, height)
+    # tinggi baris eksplisit agar tidak melar: header 0.55, isi adaptif
+    header_h = 0.55
+    body_h = 0.55 if len(rows) <= 5 else 0.45
+    if header_h + len(rows) * body_h > 4.2:
+        body_h = max((4.2 - header_h) / max(len(rows), 1), 0.36)
+    total_h = header_h + len(rows) * body_h
+    left, top, width = Inches(0.7), Inches(2.55), Inches(11.9)
+    gframe = slide.shapes.add_table(n_rows, n_cols, left, top, width, Inches(total_h))
     tbl = gframe.table
+    tbl.rows[0].height = Inches(header_h)
+    for r in range(len(rows)):
+        tbl.rows[r + 1].height = Inches(body_h)
     # lebar kolom: pakai col_widths (inci) bila diberikan, sisanya merata
     widths = d.get("col_widths") or []
     for c in range(n_cols):
@@ -365,24 +503,34 @@ def l_table(slide, theme, d: dict):
     for c in range(n_cols):
         cell = tbl.cell(0, c)
         cell.text = ""
+        cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+        cell.margin_left = Inches(0.12)
+        cell.margin_right = Inches(0.1)
+        cell.margin_top = Inches(0.04)
+        cell.margin_bottom = Inches(0.04)
         p = cell.text_frame.paragraphs[0]
         run = p.add_run()
         run.text = headers[c] if c < len(headers) else ""
-        run.font.size = Pt(12)
+        run.font.size = Pt(13)
         run.font.bold = True
         run.font.name = theme["fonts"]["head"]
         run.font.color.rgb = hex_to_rgb("#FFFFFF")
         cell.fill.solid()
-        cell.fill.fore_color.rgb = hex_to_rgb(theme["colors"]["primary"] if not dark else "#1F2937")
+        cell.fill.fore_color.rgb = hex_to_rgb(theme["colors"]["primary"])
     # body belang-belang
     for r, row in enumerate(rows):
         for c in range(n_cols):
             cell = tbl.cell(r + 1, c)
             cell.text = ""
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+            cell.margin_left = Inches(0.12)
+            cell.margin_right = Inches(0.1)
+            cell.margin_top = Inches(0.04)
+            cell.margin_bottom = Inches(0.04)
             p = cell.text_frame.paragraphs[0]
             run = p.add_run()
             run.text = str(row[c]) if c < len(row) else ""
-            run.font.size = Pt(11)
+            run.font.size = Pt(12)
             run.font.name = theme["fonts"]["body"]
             run.font.color.rgb = hex_to_rgb(BODY(theme) if dark else "#1A2B3C")
             cell.fill.solid()
@@ -492,6 +640,7 @@ LAYOUTS = {
     "agenda": l_agenda,
     "section": l_section,
     "bullets": l_bullets,
+    "facts": l_facts,
     "two-col": l_two_col,
     "stats": l_stats,
     "chart": l_chart,

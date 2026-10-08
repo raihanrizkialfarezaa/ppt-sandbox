@@ -31,8 +31,8 @@ Judul tidak boleh diubah, dipersingkat, atau diparafrasekan pada cover.
 ## 2. Fakta terkunci (sudah ada di docx, jangan diubah)
 
 **Masalah lapangan (Apotek Bisma, wawancara dan observasi 5 Juli 2026, narasumber Ibu Atik, pemilik)**
-- 3 cabang aktif dan 1 gudang distribusi, tiap cabang punya kasir mandiri, gudang memakai sistem tersendiri, tidak ada sinkronisasi real-time.
-- Sekitar 450 transaksi penjualan per hari (3 cabang). Rekonsiliasi 1 sampai 2 hari di cabang, 4 sampai 5 hari di gudang. Selisih stok fisik vs sistem hampir selalu ada pada rekonsiliasi bulanan.
+- 3 cabang aktif dan 1 gudang distribusi, tiap cabang punya kasir mandiri, gudang memakai Excel VBA, tidak ada sinkronisasi real-time.
+- Sekitar 450 transaksi penjualan per hari (3 cabang). Rekonsiliasi 1 sampai 2 hari di cabang, 4 sampai 5 hari di gudang. Selisih antara stok fisik dan catatan sistem selalu muncul pada setiap rekonsiliasi bulanan.
 - Pembingkaian yang benar: **data basi akibat catatan terpisah adalah masalah nyata yang sudah terjadi**; **lost update dan oversell adalah risiko bersyarat yang baru muncul bila sistem diintegrasikan**. Jangan menulis keduanya seolah sudah terjadi di Apotek Bisma.
 
 **Lima masalah (Identifikasi Masalah)**: rekonsiliasi lambat; stok sistem tidak cocok dengan stok fisik; integrasi tanpa sinkronisasi berisiko lost update dan oversell; belum ada dasbor monitoring terpadu; konsekuensi tiap arsitektur belum terbukti.

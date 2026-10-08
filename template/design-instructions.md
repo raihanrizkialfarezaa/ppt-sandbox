@@ -74,7 +74,7 @@ Builder hanya menyediakan 12 tipe slide. Tabel ini menunjukkan tipe terdekat unt
 | 4 kartu angka lapangan + dua kartu + pertanyaan penelitian | 2 | `stats` (4 item) | Rendah | `stats` berlatar navy, beda dengan slide 2 asli yang putih. Pakai maksimum sekali per deck. Alternatif: `bullets` dengan angka di `title`. |
 | 4 atau 5 kartu kolom | 4, 9 | `agenda` (maks 6 item, `title` + `desc`) | Sedang | Tanpa lencana kode dan tanpa baris "menargetkan risiko". Tulis risiko di `desc`. |
 | Baris RM1 sampai RM4 dengan tujuan sejajar | 5 | `table` (kolom: RM, Rumusan masalah, Tujuan; `col_widths: [1.2, 6.2, 4.7]`) | Sedang | Lencana RM navy diganti sel biasa. |
-| Tiga kartu arsitektur dengan diagram mini | 6 | `image-text` dengan gambar diagram, atau `table` 3 kolom | Rendah | Builder tidak menggambar kotak/panah. Pakai gambar diagram dari docx (Gambar 3.2) atau gambar render sendiri, lihat bagian 5. |
+| Tiga kartu arsitektur dengan diagram mini | 6 | `agenda` 3 item (`numbers: false`, nama penuh di `title`, susunan di `desc`) | Tinggi | Tanpa lencana dan tanpa diagram; nama penuh tetap terpenuhi di judul kartu. Bila ada gambar diagram, pakai `image-text` (bagian 5). |
 | Dua aspek + empat invariant + siklus status | 7 | `two-col` (kiri aspek, kanan invariant) | Sedang | Siklus status: pakai gambar (Gambar 3.3 docx) pada slide `image-text` terpisah. |
 | Empat layanan + RabbitMQ + aturan otoritas | 8 | `agenda` 4 item + kalimat aturan di `subtitle` | Sedang | Tanpa simpul basis data. |
 | Lima tahap alur penelitian | 10 | `timeline` (5 item) | Sedang | Berlatar navy. Pilot test dijelaskan di `desc` tahap 4. |
